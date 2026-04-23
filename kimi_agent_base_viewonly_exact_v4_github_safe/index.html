@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./assets/images/icon-products.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kimi Agent Base</title>
+    <script>
+      (function () {
+        var p = window.location.pathname;
+        var looksLikeFile = /\/[^/]+\.[^/]+$/.test(p);
+        if (!looksLikeFile && !p.endsWith('/')) {
+          window.location.replace(p + '/' + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/app.js"></script>
+    <link rel="stylesheet" crossorigin href="./style.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

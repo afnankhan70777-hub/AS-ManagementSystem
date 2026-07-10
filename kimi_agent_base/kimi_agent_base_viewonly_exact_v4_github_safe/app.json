@@ -1,0 +1,6 @@
+{
+  "name": "Kimi Agent Base (View Only)",
+  "short_name": "KimiView",
+  "start_url": "./index.html",
+  "display": "standalone"
+}

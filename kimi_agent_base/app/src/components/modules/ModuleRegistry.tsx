@@ -1552,7 +1552,7 @@ const UserLoginsModule = () => {
   const [form, setForm] = React.useState({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false });
   const [selId, setSelId] = React.useState<string | null>(null);
   const [showPw, setShowPw] = React.useState(false);
-  const [busyAction, setBusyAction] = React.useState<'save' | 'reset' | 'delete' | 'prepare' | null>(null);
+  const [busyAction, setBusyAction] = React.useState<'save' | 'reset' | 'delete' | 'prepare' | 'clear' | null>(null);
   const isEditing = Boolean(selId);
   const isBusy = busyAction !== null;
   const roleOptions = React.useMemo(() => {
@@ -1596,7 +1596,7 @@ const UserLoginsModule = () => {
     const selectedStillVisible = visibleUsers.some(user => String(user.id || '') === String(selId));
     if (!selectedStillVisible) {
       setSelId(null);
-      setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled ? defaultCloudRole : 'Operator', status: 'Active' });
+      setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false });
     }
   }, [defaultCloudRole, selId, visibleUsers]);
 

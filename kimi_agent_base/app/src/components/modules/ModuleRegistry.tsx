@@ -1549,14 +1549,14 @@ const UserLoginsModule = () => {
   const normalizedSessionRole = String(sessionUser?.role || '').trim().toLowerCase();
   const isPlatformOwner = normalizedSessionRole === 'platform owner';
   const defaultCloudRole = isPlatformOwner ? 'Client Admin' : 'Operator';
-  const [form, setForm] = React.useState({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false });
+  const [form, setForm] = React.useState({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled() ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false });
   const [selId, setSelId] = React.useState<string | null>(null);
   const [showPw, setShowPw] = React.useState(false);
   const [busyAction, setBusyAction] = React.useState<'save' | 'reset' | 'delete' | 'prepare' | 'clear' | null>(null);
   const isEditing = Boolean(selId);
   const isBusy = busyAction !== null;
   const roleOptions = React.useMemo(() => {
-    if (!isCloudModeEnabled) {
+    if (!isCloudModeEnabled()) {
       return ['Super Admin', 'Manager', 'Accountant', 'Operator', 'Viewer'];
     }
 
@@ -1564,7 +1564,7 @@ const UserLoginsModule = () => {
   }, [isPlatformOwner]);
 
   const visibleUsers = React.useMemo(() => {
-    if (!isCloudModeEnabled || !isPlatformOwner) {
+    if (!isCloudModeEnabled() || !isPlatformOwner) {
       return users;
     }
 
@@ -1572,7 +1572,7 @@ const UserLoginsModule = () => {
   }, [isPlatformOwner, users]);
 
   React.useEffect(() => {
-    if (!isCloudModeEnabled && users.length === 0) {
+    if (!isCloudModeEnabled() && users.length === 0) {
       [{ fullName: 'Administrator', username: 'admin', password: 'admin', email: 'admin@company.com', role: 'Super Admin', status: 'Active' },
        { fullName: 'Manager', username: 'manager', password: 'manager', email: 'manager@company.com', role: 'Manager', status: 'Active' },
        { fullName: 'Accountant', username: 'accountant', password: 'accountant', email: 'accountant@company.com', role: 'Accountant', status: 'Active' },
@@ -1596,16 +1596,16 @@ const UserLoginsModule = () => {
     const selectedStillVisible = visibleUsers.some(user => String(user.id || '') === String(selId));
     if (!selectedStillVisible) {
       setSelId(null);
-      setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false });
+      setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled() ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false });
     }
   }, [defaultCloudRole, selId, visibleUsers]);
 
-  const handleAdd = () => { setSelId(null); setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false }); };
+  const handleAdd = () => { setSelId(null); setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled() ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false }); };
   const handleResetPassword = async () => {
     if (!selId) { toast('Select a user first', 'error'); return; }
     if (form.password.length < 6) { toast('Enter a new password with at least 6 characters', 'error'); return; }
 
-    if (isCloudModeEnabled) {
+    if (isCloudModeEnabled()) {
       try {
         setBusyAction('reset');
         const refreshedUsers = await updateCloudUser({ id: selId, ...form, password: form.password });
@@ -1626,7 +1626,7 @@ const UserLoginsModule = () => {
   };
   const handleSave = async () => {
     if (!form.username || !form.fullName) { toast('Name & username required', 'error'); return; }
-    if (isCloudModeEnabled && isPlatformOwner && form.role !== 'Client Admin') { toast('Platform owner can only create client admin accounts', 'error'); return; }
+    if (isCloudModeEnabled() && isPlatformOwner && form.role !== 'Client Admin') { toast('Platform owner can only create client admin accounts', 'error'); return; }
     const normalizedUsername = normalizeLoginUsername(form.username);
     const originalUsername = normalizeLoginUsername(selectedUserRecord?.username);
     const usernameChanged = normalizedUsername !== originalUsername;
@@ -1637,7 +1637,7 @@ const UserLoginsModule = () => {
       return;
     }
 
-    if (isCloudModeEnabled) {
+    if (isCloudModeEnabled()) {
       if (!selId && form.password.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
       if (isPlatformOwner && form.role === 'Client Admin' && !form.organizationName.trim()) { toast('Business name is required for client admins', 'error'); return; }
 
@@ -1674,11 +1674,11 @@ const UserLoginsModule = () => {
       store.add('user-logins', form);
       toast('User added');
     }
-    setSelId(null); setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false });
+    setSelId(null); setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled() ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false });
   };
   const handleDelete = async () => {
     if (!selId) { toast('Select a user first', 'error'); return; }
-    if (isCloudModeEnabled) {
+    if (isCloudModeEnabled()) {
       try {
         setBusyAction('delete');
         const refreshedUsers = await deleteCloudUser(selId);
@@ -1692,10 +1692,10 @@ const UserLoginsModule = () => {
     } else {
       store.remove('user-logins', selId);
     }
-    setSelId(null); setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false }); toast('User deleted');
+    setSelId(null); setForm({ fullName: '', username: '', password: '', email: '', organizationName: '', role: isCloudModeEnabled() ? defaultCloudRole : 'Operator', status: 'Active', includeDemoData: false }); toast('User deleted');
   };
   const handlePrepareWorkspace = async () => {
-    if (!isCloudModeEnabled) { return; }
+    if (!isCloudModeEnabled()) { return; }
     const targetOrganizationName = form.organizationName.trim();
     if (!targetOrganizationName) { toast('Select a client business first', 'error'); return; }
 
@@ -1714,7 +1714,7 @@ const UserLoginsModule = () => {
     }
   };
   const handleClearDemoData = async () => {
-    if (!isCloudModeEnabled || !isPlatformOwner) { 
+    if (!isCloudModeEnabled() || !isPlatformOwner) { 
       toast('Only platform owner can clear demo data', 'error'); 
       return; 
     }
@@ -1747,7 +1747,7 @@ const UserLoginsModule = () => {
       setBusyAction(null);
     }
   };
-  const selectRow = (u: Record<string, unknown>) => { setSelId(u.id as string); setForm({ fullName: (u.fullName as string) || '', username: (u.username as string) || '', password: '', email: (u.email as string) || '', organizationName: (u.organizationName as string) || '', role: (u.role as string) || (isCloudModeEnabled ? defaultCloudRole : 'Operator'), status: (u.status as string) || 'Active', includeDemoData: false }); };
+  const selectRow = (u: Record<string, unknown>) => { setSelId(u.id as string); setForm({ fullName: (u.fullName as string) || '', username: (u.username as string) || '', password: '', email: (u.email as string) || '', organizationName: (u.organizationName as string) || '', role: (u.role as string) || (isCloudModeEnabled() ? defaultCloudRole : 'Operator'), status: (u.status as string) || 'Active', includeDemoData: false }); };
   const set = (key: string, val: string) => setForm(p => ({ ...p, [key]: val }));
 
   return (
@@ -1758,13 +1758,13 @@ const UserLoginsModule = () => {
           <div className="flex gap-1">
             <button onClick={handleAdd} disabled={isBusy} className="p-2 bg-bg-secondary border border-border-custom hover:bg-bg-tertiary disabled:opacity-50" title="New"><svg className="w-5 h-5 text-[#2196f3]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14" /></svg></button>
             <button onClick={handleSave} disabled={isBusy} className="p-2 bg-bg-secondary border border-border-custom hover:bg-bg-tertiary disabled:opacity-50" title="Save"><svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></svg></button>
-            {isCloudModeEnabled ? <button onClick={handlePrepareWorkspace} disabled={isBusy || !form.organizationName.trim()} className="p-2 bg-bg-secondary border border-border-custom hover:bg-bg-tertiary disabled:opacity-50" title="Prepare Workspace"><svg className="w-5 h-5 text-accent-orange" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 10h18" /><path d="M7 15h1m4 0h5" /><path d="M5 5h14l1 5H4l1-5Z" /><path d="M4 10v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" /></svg></button> : null}
-            {isCloudModeEnabled && isPlatformOwner ? <button onClick={handleClearDemoData} disabled={isBusy || !form.organizationName.trim()} className="p-2 bg-bg-secondary border border-border-custom hover:bg-bg-tertiary disabled:opacity-50" title="Clear Demo Data"><svg className="w-5 h-5 text-danger" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M10 11v6" /><path d="M14 11v6" /></svg></button> : null}
+            {isCloudModeEnabled() ? <button onClick={handlePrepareWorkspace} disabled={isBusy || !form.organizationName.trim()} className="p-2 bg-bg-secondary border border-border-custom hover:bg-bg-tertiary disabled:opacity-50" title="Prepare Workspace"><svg className="w-5 h-5 text-accent-orange" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 10h18" /><path d="M7 15h1m4 0h5" /><path d="M5 5h14l1 5H4l1-5Z" /><path d="M4 10v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" /></svg></button> : null}
+            <button onClick={handleClearDemoData} disabled={isBusy || !form.organizationName.trim() || !isCloudModeEnabled() || !isPlatformOwner} className={`p-2 border border-border-custom hover:bg-bg-tertiary disabled:opacity-50 ${isCloudModeEnabled() && isPlatformOwner ? 'bg-bg-secondary' : 'hidden'}`} title="Clear Demo Data"><svg className="w-5 h-5 text-danger" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M10 11v6" /><path d="M14 11v6" /></svg></button>
             <button onClick={handleResetPassword} disabled={isBusy} className="p-2 bg-bg-secondary border border-border-custom hover:bg-bg-tertiary disabled:opacity-50" title="Reset Password"><svg className="w-5 h-5 text-accent-cyan" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 10V7a4 4 0 10-8 0v3" /><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M12 14v2" /></svg></button>
             <button onClick={handleDelete} disabled={isBusy} className="p-2 bg-bg-secondary border border-border-custom hover:bg-bg-tertiary disabled:opacity-50" title="Delete"><svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M10 11v6M14 11v6M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg></button>
           </div>
         </div>
-        {isCloudModeEnabled && isPlatformOwner ? (
+        {isCloudModeEnabled() && isPlatformOwner ? (
           <div className="grid grid-cols-3 gap-3 text-xs">
             <div className="border border-border-custom bg-bg-secondary p-3">
               <div className="font-bold text-accent-cyan">Client Handover</div>
@@ -1792,14 +1792,14 @@ const UserLoginsModule = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2"><span className="text-xs text-text-secondary w-28">Full Name</span><input className="flex-1 text-xs" type="text" value={form.fullName} onChange={e => set('fullName', e.target.value)} disabled={isBusy} /></div>
               <div className="flex items-center gap-2"><span className="text-xs text-text-secondary w-28">Username</span><input className="flex-1 text-xs text-accent-cyan" type="text" value={form.username} onChange={e => set('username', e.target.value)} disabled={isBusy} /></div>
-              <div className="flex items-center gap-2"><span className="text-xs text-text-secondary w-28">{isCloudModeEnabled ? (isEditing ? 'New Password' : 'Password') : 'Password'}</span><div className="flex-1 relative"><input className="w-full text-xs pr-8" type={showPw ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)} placeholder={isCloudModeEnabled && isEditing ? 'Leave blank to keep current password' : ''} disabled={isBusy} /><button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-2 top-1/2 -translate-y-1/2" disabled={isBusy}><svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 010-.696 10.75 10.75 0 0119.876 0 1 1 0 010 .696 10.75 10.75 0 01-19.876 0" /><circle cx="12" cy="12" r="3" /></svg></button></div></div>
-              {isCloudModeEnabled
+              <div className="flex items-center gap-2"><span className="text-xs text-text-secondary w-28">{isCloudModeEnabled() ? (isEditing ? 'New Password' : 'Password') : 'Password'}</span><div className="flex-1 relative"><input className="w-full text-xs pr-8" type={showPw ? 'text' : 'password'} value={form.password} onChange={e => set('password', e.target.value)} placeholder={isCloudModeEnabled() && isEditing ? 'Leave blank to keep current password' : ''} disabled={isBusy} /><button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-2 top-1/2 -translate-y-1/2" disabled={isBusy}><svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 010-.696 10.75 10.75 0 0119.876 0 1 1 0 010 .696 10.75 10.75 0 01-19.876 0" /><circle cx="12" cy="12" r="3" /></svg></button></div></div>
+              {isCloudModeEnabled()
                 ? (isPlatformOwner
                     ? <div className="flex items-center gap-2"><span className="text-xs text-text-secondary w-28">Login Handover</span><div className="flex-1 text-xs text-accent-cyan">Give client only User ID and Password. E-mail is managed internally.</div></div>
                     : null)
                 : <div className="flex items-center gap-2"><span className="text-xs text-text-secondary w-28">E-Mail</span><input className="flex-1 text-xs" type="email" value={form.email} onChange={e => set('email', e.target.value)} /></div>}
-              {isCloudModeEnabled ? <div className="flex items-center gap-2"><span className="text-xs text-text-secondary w-28">Business</span><input className="flex-1 text-xs" type="text" value={form.organizationName} onChange={e => set('organizationName', e.target.value)} placeholder={isPlatformOwner ? 'Required for client admin' : 'Assigned from your business'} disabled={!isPlatformOwner || isBusy} /></div> : null}
-              {isCloudModeEnabled && isPlatformOwner ? (
+              {isCloudModeEnabled() ? <div className="flex items-center gap-2"><span className="text-xs text-text-secondary w-28">Business</span><input className="flex-1 text-xs" type="text" value={form.organizationName} onChange={e => set('organizationName', e.target.value)} placeholder={isPlatformOwner ? 'Required for client admin' : 'Assigned from your business'} disabled={!isPlatformOwner || isBusy} /></div> : null}
+              {isCloudModeEnabled() && isPlatformOwner ? (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-text-secondary w-28">Demo Data</span>
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -1830,13 +1830,13 @@ const UserLoginsModule = () => {
                   <span>Selected Role</span>
                   <span className="text-accent-cyan">{form.role || 'Operator'}</span>
                 </div>
-                {isCloudModeEnabled ? <div className="flex items-center justify-between"><span>Business</span><span className="text-accent-cyan">{form.organizationName || 'Assigned automatically'}</span></div> : null}
+                {isCloudModeEnabled() ? <div className="flex items-center justify-between"><span>Business</span><span className="text-accent-cyan">{form.organizationName || 'Assigned automatically'}</span></div> : null}
                 <div className="flex items-center justify-between">
                   <span>Selected Status</span>
                   <span className="text-accent-cyan">{form.status || 'Active'}</span>
                 </div>
               </div>
-              {isCloudModeEnabled ? (
+              {isCloudModeEnabled() ? (
                 isPlatformOwner
                   ? <p>Create the client admin, then hand over only the User ID and Password. If they forget the password later, select that user, enter a new password, and click Reset Password.</p>
                   : <p>Use this screen to add, update, disable, or reset passwords for users in your own business.</p>
@@ -1852,9 +1852,9 @@ const UserLoginsModule = () => {
                 <th className="text-xs py-1 px-2 border border-border-custom text-white">#</th>
                 <th className="text-xs py-1 px-2 border border-border-custom text-white">Username</th>
                 <th className="text-xs py-1 px-2 border border-border-custom text-white">Full Name</th>
-                {isCloudModeEnabled ? <th className="text-xs py-1 px-2 border border-border-custom text-white">Business</th> : null}
+                {isCloudModeEnabled() ? <th className="text-xs py-1 px-2 border border-border-custom text-white">Business</th> : null}
                 <th className="text-xs py-1 px-2 border border-border-custom text-white">Role</th>
-                {isCloudModeEnabled ? null : <th className="text-xs py-1 px-2 border border-border-custom text-white">Email</th>}
+                {isCloudModeEnabled() ? null : <th className="text-xs py-1 px-2 border border-border-custom text-white">Email</th>}
                 <th className="text-xs py-1 px-2 border border-border-custom text-white">Status</th>
               </tr></thead>
               <tbody>
@@ -1863,16 +1863,16 @@ const UserLoginsModule = () => {
                     <td className="text-xs py-1 px-2 border border-border-custom">{i + 1}</td>
                     <td className="text-xs py-1 px-2 border border-border-custom text-accent-cyan">{u.username as string}</td>
                     <td className="text-xs py-1 px-2 border border-border-custom">{u.fullName as string}</td>
-                    {isCloudModeEnabled ? <td className="text-xs py-1 px-2 border border-border-custom">{(u.organizationName as string) || '-'}</td> : null}
+                    {isCloudModeEnabled() ? <td className="text-xs py-1 px-2 border border-border-custom">{(u.organizationName as string) || '-'}</td> : null}
                     <td className="text-xs py-1 px-2 border border-border-custom">{u.role as string}</td>
-                    {isCloudModeEnabled ? null : <td className="text-xs py-1 px-2 border border-border-custom">{u.email as string}</td>}
+                    {isCloudModeEnabled() ? null : <td className="text-xs py-1 px-2 border border-border-custom">{u.email as string}</td>}
                     <td className={`text-xs py-1 px-2 border border-border-custom font-semibold ${u.status === 'Active' ? 'text-success' : 'text-danger'}`}>{u.status as string}</td>
                   </tr>
                 ))}
                 {visibleUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={isCloudModeEnabled ? 6 : 6} className="text-xs py-3 px-2 border border-border-custom text-text-secondary text-center">
-                      {isCloudModeEnabled && isPlatformOwner ? 'No client admin accounts found yet.' : 'No user accounts found yet.'}
+                    <td colSpan={isCloudModeEnabled() ? 6 : 6} className="text-xs py-3 px-2 border border-border-custom text-text-secondary text-center">
+                      {isCloudModeEnabled() && isPlatformOwner ? 'No client admin accounts found yet.' : 'No user accounts found yet.'}
                     </td>
                   </tr>
                 ) : null}
@@ -1937,7 +1937,7 @@ const UserRightsModule = () => {
   }, [normalizedSelUser, userRightsFromStore]);
 
   React.useEffect(() => {
-    if (!isCloudModeEnabled || !isPlatformOwner || !normalizedSelUser) {
+    if (!isCloudModeEnabled() || !isPlatformOwner || !normalizedSelUser) {
       return;
     }
 
@@ -2064,7 +2064,7 @@ const UserRightsModule = () => {
         syncedRights = [...rights, newRecord];
       }
 
-      if (isCloudModeEnabled) {
+      if (isCloudModeEnabled()) {
         if (isPlatformOwner) {
           const savedRecord = await saveCloudUserRights(selUser.trim(), updated);
           if (rec) {
@@ -2227,7 +2227,7 @@ const ChangePasswordModule = () => {
     if (!current) { toast('Enter current password', 'error'); return; }
     if (newPw.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
     if (newPw !== confirm) { toast('Passwords do not match', 'error'); return; }
-    if (isCloudModeEnabled) {
+    if (isCloudModeEnabled()) {
       void changeCloudPassword(current, newPw)
         .then(() => {
           toast('Password changed successfully');
@@ -2482,7 +2482,7 @@ const SoftwarePreferencesModule = () => {
     const collectionsToClear = Array.from(new Set([...localCollections, ...cloudCollections]))
       .filter(collection => collection && !PRESERVED_CLEAR_DATA_COLLECTIONS.has(collection));
 
-    if (isCloudModeEnabled) {
+    if (isCloudModeEnabled()) {
       const failedCollections: string[] = [];
       const removableUsers = userLogins.filter(record => String(record.id || '') !== currentUserId);
 

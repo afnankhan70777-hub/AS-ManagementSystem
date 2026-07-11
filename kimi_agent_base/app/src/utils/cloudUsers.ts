@@ -97,7 +97,7 @@ async function getManageUsersAccessToken() {
 }
 
 async function invokeManageUsers(action: string, payload: object) {
-  if (!isCloudModeEnabled) {
+  if (!isCloudModeEnabled()) {
     throw new Error('Cloud user management is not enabled.');
   }
 
